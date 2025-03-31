@@ -4,7 +4,7 @@ library(beeswarm)
 ## I am making a short plot of pamlmer pengins to see how to commit into github
 
 ### palmer penguins plot
-ggplot(data = penguins, aes(x= species, y = body_mass_g, colour = island, fill = island)) +
+pinguino_plotisimo <- ggplot(data = penguins, aes(x= species, y = body_mass_g, colour = island, fill = island)) +
   geom_boxplot() +
   theme_bw() +
   scale_colour_viridis_d() +
@@ -14,3 +14,5 @@ ggplot(data = penguins, aes(x= species, y = body_mass_g, colour = island, fill =
        y = "Body Mass (g)",
        colour = "Island") 
   
+pinguino_plotisimo +
+  theme(legend.position="bottom")
