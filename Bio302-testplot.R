@@ -6,6 +6,7 @@ library(palmerpenguins)
 ggplot(data = penguins, aes(x= species, y = body_mass_g, colour = island)) +
   geom_jitter() +
   theme_bw() +
+  scale_colour_viridis_d() +
   labs(title = "Palmer Penguins Body Mass by Species and Island",
        x = "Species",
        y = "Body Mass (g)",
