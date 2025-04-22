@@ -1,0 +1,145 @@
+---
+title: "Replication of Common Garden Bio302 Study"
+author: "Hannah Sødal"
+date: today
+format: 
+  html:
+    self-contained: true
+    code-tools: 
+      source: true
+editor: visual
+---
+
+## Common garden experiment
+
+This is a replication of the statistical methods used in the study: "A common-garden experiment to quantify evolutionary processes in copepods: the case of emamectin benzoate resistance in the parasitic sea louse *Lepeophtheirus salmonis*" DOI: <https://doi.org/10.1186/1471-2148-14-108>.
+
+In this study, seventeen full-sibling families were established from three strains of *Lepeophtheirus salmonis*, each displaying varying levels of emamectin benzoate (EB) tolerance. These families were quantitatively compared in a common-garden experimental design. The authors found significant differences in survival rates, with some families exhibiting higher resistance to EB than others.
+
+This replication was carried out to assess the reproducibility of the study. While the article presents interesting findings, there are several concerns regarding data reproducibility.
+
+```{r}
+#| label: setup
+#| message: false
+#| echo: false
+
+library(tidyverse)
+library(janitor)
+library(here)
+library(readxl)
+library(lme4)
+library(patchwork)
+
+```
+
+*Importing the data:*
+
+```{r}
+#| label: data_import
+#| message: false
+#| output: false
+
+# The import is complicated as the data needed to be filtered and transformed to fit the analysis
+data <- read_excel("data/Data_CommonGarden_EBTrial.xls", sheet = 2) |> 
+  select(1:6) |> 
+  janitor::clean_names() |> 
+  filter(status %in% c("SAT", "DAT")) |> 
+  mutate(
+    status = ifelse(status == "SAT", 1, 0),
+    ex_group = case_when(
+    family %in% c("Family-01", "Family-02") ~ "resistant",
+    family %in% paste0("Family-0", 3:9) ~ "hybrid",
+    family == "Family-10" ~ "sensitive",
+    family %in% paste0("Family-", 11:17) ~ "unknown",
+    TRUE ~ NA_character_  
+  ))
+
+data |> head()
+
+```
+
+The authors used AIC to determine the best model and conducted Chi-square tests to examine differences in survival between families and across different tanks. As the Chi-square tests yielded non-significant results, and based on AIC, the authors decided not to treat tanks as random effects. Below is the code for the Chi-square tests and the model used in the original study.
+
+```{r}
+#| label: chi_square_test
+
+# Chi-square test for survival and experimental group
+chisq.test(table(data$tank, data$ex_group))
+# Chi-square test for survival and family
+chisq.test(table(data$tank, data$family))
+```
+
+Looking at the summary, it clear that there are differences between the families.
+
+```{r}
+#| label: making_a_model
+
+# Fit a linear mixed-effects model
+mod <- lm(status ~ family + sex + tank, data = data)
+summary(mod)
+```
+
+I choose to make figure 3 in the paper, as I could not locate the infection success data when I started reproducing the results (See data organization section above).
+
+```{r}
+#| label: plot_data
+
+# Calculate survival ratios per tank (or unit) within each experimental group
+group_box_data <- data |> 
+  group_by(ex_group, tank) |> 
+  summarise(survival_ratio = mean(status) * 100, .groups = 'drop')
+
+# Plot Figure 3A
+plot_3A <- ggplot(group_box_data, aes(x = ex_group, y = survival_ratio, fill = ex_group)) +
+  geom_boxplot(outlier.shape = NA, width = 0.5) +
+  stat_summary(fun = mean, geom = "point", shape = 3, size = 3, color = "black") + 
+  scale_fill_manual(values = c("resistant" = "#D73027", 
+                               "hybrid" = "orange2", 
+                               "sensitive" = "#4575B4", 
+                               "unknown" = "green4")) +
+  labs(y = "SURVIVAL RATIO (%)", x = "EXPERIMENTAL GROUP") +
+  theme_classic(base_size = 14) +
+  ylim(0, 100)
+
+# Calculate survival ratio per family per tank
+family_box_data <- data |> 
+  group_by(family, ex_group, tank) |> 
+  summarise(survival_ratio = mean(status) * 100, .groups = 'drop') |> 
+  mutate(family_number = as.numeric(gsub("Family-", "", family)))
+
+# Plot Figure 3B
+plot_3B <- ggplot(family_box_data, aes(x = factor(family_number), y = survival_ratio, fill = ex_group)) +
+  geom_boxplot(outlier.shape = NA, width = 0.5) +
+  stat_summary(fun = mean, geom = "point", shape = 3, size = 2, color = "black") + 
+  scale_fill_manual(values = c("resistant" = "#D73027", 
+                               "hybrid" = "orange2", 
+                               "sensitive" = "#4575B4", 
+                               "unknown" = "green4")) +
+  labs(y = "SURVIVAL RATIO (%)", x = "FAMILY") +
+  theme_classic(base_size = 14) +
+  ylim(0, 100)
+
+plot_3A / plot_3B + plot_layout(heights = c(1, 1)) 
+
+
+```
+
+Underneeth you see the figure that i have replicated from the article. ![](data/BildeCommon.webp){width="60%"}
+
+## Reproducibility Assessment:
+
+**Data Availability and Access:** One of the strengths of the study is that the authors have made their data publicly available. This is a critical step in ensuring that the findings can be verified and used by other researchers. However, the data was not consistently presented in a clear, accessible manner. The data was scattered across multiple files and presented in different formats, which complicates its usability.
+
+**Data Organization:** A major concern regarding reproducibility is the poor organization of the data. Specifically, the data for the categories of each family was not readily accessible. I initially struggled to locate this information, and had to manually organize and clean the data (see data import code) to create the plots required for reproduction. Eventually, I found an Excel sheet with the necessary data, but it was not straightforward to use. The data required multiple transformations, such as pivoting tables and performing left joins, which added considerable complexity to the process. I concluded with not doing this, as this would requrie a lot more then 20 min.
+
+**Lack of Code Availability:** Another significant limitation to reproducibility is the absence of the authors’ analysis code. The authors did not include the scripts or detailed workflows they used for data analysis, which makes it difficult for others to validate or replicate the results. Sharing the analysis code would align with current best practices in open science, where transparency and accessibility are essential for building a strong foundation of research.
+
+### Suggestions for Improvement:
+
+**Data Organization:** The authors should consolidate all the relevant data into a single, well-structured dataset or provide clear documentation on how the data across multiple files should be combined. Data should be presented in a consistent format, which could include making use of standard data formats such as CSV.
+
+**Code Sharing:** Providing the full analysis code would be an essential step toward ensuring that others can reproduce the findings. Code should be shared in a repository such as GitHub or included in supplementary materials, with clear instructions on how to run the analysis from start to finish.
+
+## Conclusion:
+
+While the authors of this article have made their data available, the overall organization and clarity of the data are not sufficient for ensuring reproducibility. The lack of code and clear data documentation presents a significant barrier to replicating the analysis. To improve the reproducibility of their work, the authors should focus on better organizing their data, providing code, and offering clear documentation. With these improvements, the study would be more transparent, accessible, and reproducible, which are critical factors in a time when the integrity of science is increasingly questioned.
