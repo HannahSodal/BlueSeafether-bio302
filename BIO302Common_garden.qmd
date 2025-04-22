@@ -124,22 +124,4 @@ plot_3A / plot_3B + plot_layout(heights = c(1, 1))
 
 ```
 
-Underneeth you see the figure that i have replicated from the article. ![](data/BildeCommon.webp){width="60%"}
-
-## Reproducibility Assessment:
-
-**Data Availability and Access:** One of the strengths of the study is that the authors have made their data publicly available. This is a critical step in ensuring that the findings can be verified and used by other researchers. However, the data was not consistently presented in a clear, accessible manner. The data was scattered across multiple files and presented in different formats, which complicates its usability.
-
-**Data Organization:** A major concern regarding reproducibility is the poor organization of the data. Specifically, the data for the categories of each family was not readily accessible. I initially struggled to locate this information, and had to manually organize and clean the data (see data import code) to create the plots required for reproduction. Eventually, I found an Excel sheet with the necessary data, but it was not straightforward to use. The data required multiple transformations, such as pivoting tables and performing left joins, which added considerable complexity to the process. I concluded with not doing this, as this would requrie a lot more then 20 min.
-
-**Lack of Code Availability:** Another significant limitation to reproducibility is the absence of the authors’ analysis code. The authors did not include the scripts or detailed workflows they used for data analysis, which makes it difficult for others to validate or replicate the results. Sharing the analysis code would align with current best practices in open science, where transparency and accessibility are essential for building a strong foundation of research.
-
-### Suggestions for Improvement:
-
-**Data Organization:** The authors should consolidate all the relevant data into a single, well-structured dataset or provide clear documentation on how the data across multiple files should be combined. Data should be presented in a consistent format, which could include making use of standard data formats such as CSV.
-
-**Code Sharing:** Providing the full analysis code would be an essential step toward ensuring that others can reproduce the findings. Code should be shared in a repository such as GitHub or included in supplementary materials, with clear instructions on how to run the analysis from start to finish.
-
-## Conclusion:
-
-While the authors of this article have made their data available, the overall organization and clarity of the data are not sufficient for ensuring reproducibility. The lack of code and clear data documentation presents a significant barrier to replicating the analysis. To improve the reproducibility of their work, the authors should focus on better organizing their data, providing code, and offering clear documentation. With these improvements, the study would be more transparent, accessible, and reproducible, which are critical factors in a time when the integrity of science is increasingly questioned.
+Underneath you see the figure that i have replicated from the article. ![](data/BildeCommon.webp){width="60%"}
